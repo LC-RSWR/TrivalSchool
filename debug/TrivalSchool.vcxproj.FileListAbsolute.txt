@@ -1,1 +1,2 @@
 C:\Users\Administrator\Desktop\Work\TrivalSchool\debug\TrivalSchool.exe
+C:\code\TrivalSchool\debug\TrivalSchool.exe

@@ -1,9 +1,9 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.12.35527.113 d17.12
+VisualStudioVersion = 17.12.35527.113
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TrivalSchool", "TrivalSchool.vcxproj", "{ECB2A1D1-A4F7-3DC2-979F-65F8B126E309}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TrivalSchool", "TrivalSchool.vcxproj", "{3852A824-24BC-3EFD-AAB2-EA1842130090}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -11,10 +11,10 @@ Global
 		Release|x64 = Release|x64
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{ECB2A1D1-A4F7-3DC2-979F-65F8B126E309}.Debug|x64.ActiveCfg = Debug|x64
-		{ECB2A1D1-A4F7-3DC2-979F-65F8B126E309}.Debug|x64.Build.0 = Debug|x64
-		{ECB2A1D1-A4F7-3DC2-979F-65F8B126E309}.Release|x64.ActiveCfg = Release|x64
-		{ECB2A1D1-A4F7-3DC2-979F-65F8B126E309}.Release|x64.Build.0 = Release|x64
+		{3852A824-24BC-3EFD-AAB2-EA1842130090}.Debug|x64.ActiveCfg = Debug|x64
+		{3852A824-24BC-3EFD-AAB2-EA1842130090}.Debug|x64.Build.0 = Debug|x64
+		{3852A824-24BC-3EFD-AAB2-EA1842130090}.Release|x64.ActiveCfg = Release|x64
+		{3852A824-24BC-3EFD-AAB2-EA1842130090}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

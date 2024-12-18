@@ -14,8 +14,6 @@ MainWindow::MainWindow(QWidget *parent)
     campusMap = new CampusMap(10);  // 假设有10个景点
     generateRandomLandmarks();
     generateRandomPaths();
-
-
 }
 
 MainWindow::~MainWindow()
