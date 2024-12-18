@@ -10,6 +10,7 @@
 #include <QLabel>
 #include <QLineEdit>
 #include <QMouseEvent>
+#include <qdebug.h>
 #include "campusmap.h"
 
 QT_BEGIN_NAMESPACE
@@ -22,6 +23,7 @@ QT_END_NAMESPACE
 
 #include <QGraphicsSceneMouseEvent>
 
+
 class LandmarkItem : public QGraphicsItem {
 
 
@@ -31,55 +33,22 @@ public:
 		setPos(landmark.position);  // 设置项的位置
 		setFlag(ItemIsSelectable);  // 可以选择
 		setAcceptHoverEvents(true);  // 启用鼠标悬停事件
+		setZValue(9999);  // 确保文本的层级值为 0 或者你需要的层级
 	}
 
 	QRectF boundingRect() const override {
 		return QRectF(-15, -15, 30, 30);  // 圆形的边界框
 	}
 
-	void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override {
-		// 设置画笔和画刷
-		QPen pen(Qt::black);
-		QBrush brush(Qt::blue);
-		painter->setPen(pen);
-		painter->setBrush(brush);
-
-		// 绘制圆形表示景点
-		painter->drawEllipse(boundingRect());
-
-		// 绘制景点名称，设置为鲜艳的橙色
-		QFont font = painter->font();
-		font.setPointSize(10);
-		painter->setFont(font);
-
-		// 设置字体颜色为绿色
-		QPen textPen(Qt::green);  // 设置文字颜色为绿色
-		painter->setPen(textPen);
-
-		// 绘制景点名称
-		painter->drawText(-15, 25, m_landmark.name);
-
-		// 绘制位置坐标 (x, y)
-		QFont coordFont = painter->font();
-		coordFont.setPointSize(6);
-		painter->setFont(coordFont);
-
-		// 设置坐标文本颜色为黑色（默认）
-		painter->setPen(Qt::black);
-
-		QString coordinates = QString("(%1, %2)").arg(m_landmark.position.x()).arg(m_landmark.position.y());
-		painter->drawText(-15, 35, coordinates);  // 绘制坐标文本
-
-		// 如果鼠标悬停在景点上，显示介绍信息
-		if (m_hovered) {
-			painter->setPen(Qt::black);
-			painter->setBrush(Qt::white);
-			QRectF rect(m_landmark.position.x(), m_landmark.position.y(), 500, 100);  // 介绍框的位置和大小
-			painter->drawText(-35, 35, coordinates);  // 绘制坐标文本
-		}
-	}
+	void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
 
 protected:
+
+	virtual void mouseMoveEvent(QGraphicsSceneMouseEvent* event)
+	{
+		update();
+	}
+
 	// 鼠标进入景点时显示介绍
 	void hoverEnterEvent(QGraphicsSceneHoverEvent* event) override {
 		m_hovered = true;
@@ -92,7 +61,7 @@ protected:
 		update();  // 更新视图，重新绘制以隐藏介绍信息
 	}
 
-private:
+public:
 	Landmark m_landmark;  // 景点数据
 	bool m_hovered;  // 标记鼠标是否悬停在景点上
 };
