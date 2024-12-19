@@ -1,10 +1,19 @@
 ﻿#ifndef CAMPUSMAP_H
 #define CAMPUSMAP_H
 
-#include <qstring>
+#include <QString>
 #include <QVector>
 #include <QMap>
 #include <QPointF>
+#include <QQueue>
+#include <limits.h>
+#include <algorithm>
+#include <QStringList>
+#include <QString>
+#include <QPointF>
+#include <QVector>
+#include <cmath>
+#include <limits>
 
 struct Landmark {
     QString name;     // 景点名称
@@ -12,6 +21,8 @@ struct Landmark {
     QString intro;    // 景点简介
     QPointF position; // 景点位置
 };
+
+
 
 class CampusMap {
 public:
@@ -25,13 +36,10 @@ public:
 
         // 初始化 adjacencyMatrix 内部每个 QVector<int>
         for (int i = 0; i < numLandmarks; ++i) {
-          
             adjacencyMatrix[i].resize(numLandmarks); // 每个子 QVector 初始化为 -1
-            for (size_t j = 0; j < numLandmarks; j++)
-            {
+            for (size_t j = 0; j < numLandmarks; j++) {
                 adjacencyMatrix[i][j] = -1;
             }
-           
         }
     }
 
@@ -43,17 +51,118 @@ public:
         adjacencyMatrix[from][to] = length;
         adjacencyMatrix[to][from] = length;  // 假设是无向图
     }
+
+    // 计算两景点之间的欧几里得距离
+    float calculateDistance(int from, int to) const {
+        const QPointF& p1 = landmarks[from].position;
+        const QPointF& p2 = landmarks[to].position;
+        return std::sqrt(std::pow(p2.x() - p1.x(), 2) + std::pow(p2.y() - p1.y(), 2));
+    }
+
+    // 获取所有景点之间的距离矩阵
+    QVector<QVector<int>> getDistanceMatrix() {
+        int n = landmarks.size();
+        QVector<QVector<int>> dist(n, QVector<int>(n, 0));
+
+        for (int i = 0; i < n; ++i) {
+            for (int j = 0; j < n; ++j) {
+                if (i != j) {
+                    dist[i][j] = static_cast<int>(calculateDistance(i, j));
+                }
+            }
+        }
+
+        return dist;
+    }
+
+    // 计算最短路径的 TSP（贪心算法）
+    int calculateTSP(const QVector<int>& targets, QVector<int>& path) {
+        int n = targets.size();
+        QVector<bool> visited(n, false);
+        int totalLength = 0;
+        path.clear();
+
+        // 假设起点为第一个目标景点
+        int current = targets[0];
+        visited[0] = true;
+        path.append(current);
+
+        for (int i = 1; i < n; ++i) {
+            // 贪心策略：选择下一个距离最近的目标
+            int next = -1;
+            int minDist = std::numeric_limits<int>::max();
+
+            for (int j = 0; j < n; ++j) {
+                if (!visited[j]) {
+                    int dist = adjacencyMatrix[current][targets[j]];
+                    if (dist != -1 && dist < minDist) {
+                        minDist = dist;
+                        next = j;
+                    }
+                }
+            }
+
+            if (next == -1) break; // 如果没有找到可达的下一个景点（比如有不可达的情况）
+
+            visited[next] = true;
+            path.append(targets[next]);
+            totalLength += minDist;
+            current = targets[next];
+        }
+
+        // 最后，返回到起点
+        totalLength += adjacencyMatrix[current][targets[0]];
+        return totalLength;
+    }
+
+    // 使用 getDistanceMatrix 进行 TSP 计算
+    int calculateTSPUsingMatrix(const QVector<int>& targets, QVector<int>& path) {
+        // 获取距离矩阵
+        QVector<QVector<int>> distMatrix = getDistanceMatrix();
+
+        int n = targets.size();
+        QVector<bool> visited(n, false);
+        int totalLength = 0;
+        path.clear();
+
+        // 假设起点为第一个目标景点
+        int current = targets[0];
+        visited[0] = true;
+        path.append(current);
+
+        for (int i = 1; i < n; ++i) {
+            // 贪心策略：选择下一个距离最近的目标
+            int next = -1;
+            int minDist = std::numeric_limits<int>::max();
+
+            for (int j = 0; j < n; ++j) {
+                if (!visited[j]) {
+                    int dist = distMatrix[current][targets[j]];
+                    if (dist < minDist) {
+                        minDist = dist;
+                        next = j;
+                    }
+                }
+            }
+
+            if (next == -1) break; // 如果没有找到可达的下一个景点（比如有不可达的情况）
+
+            visited[next] = true;
+            path.append(targets[next]);
+            totalLength += minDist;
+            current = targets[next];
+        }
+
+        // 最后，返回到起点
+        totalLength += distMatrix[current][targets[0]];
+        return totalLength;
+    }
 };
-
-
-#include <QVector>
-#include <QQueue>
-#include <limits.h>
 
 class Dijkstra {
 public:
     // 查询从start到所有节点的最短路径
-    QVector<int> findShortestPath(CampusMap& campus, int start) {
+    QVector<QPair<QVector<int>, int>> findShortestPathsWithLength(CampusMap& campus, int start) {
         int n = campus.landmarks.size();
         QVector<int> dist(n, INT_MAX);  // 存储最短距离
         QVector<int> prev(n, -1);  // 存储前驱节点
@@ -84,36 +193,32 @@ public:
             }
         }
 
-        return dist;
-    }
+        // 通过prev数组重建从start到每个节点的路径
+        QVector<QPair<QVector<int>, int>> pathsWithLength(n);
 
-    // 假设这是Dijkstra算法中的一部分
-    QVector<int> findShortestPathWithPrev(CampusMap& campusMap, int start, QVector<int>& prev) {
-        int n = campusMap.landmarks.size();
-        QVector<int> dist(n, INT_MAX);
-        dist[start] = 0;
-        prev.fill(-1, n);  // 初始化前驱数组
-
-        QQueue<int> queue;
-        queue.enqueue(start);
-
-        while (!queue.isEmpty()) {
-            int u = queue.dequeue();
-            for (int v : campusMap.adjacencyMatrix[u]) {
-                if (dist[u] + campusMap.adjacencyMatrix[u][v] < dist[v]) {
-                    dist[v] = dist[u] + campusMap.adjacencyMatrix[u][v];
-                    prev[v] = u;  // 记录前驱节点
-                    queue.enqueue(v);
+        for (int i = 0; i < n; ++i) {
+            if (dist[i] != INT_MAX) {
+                QVector<int> path;
+                int totalLength = 0;
+                for (int node = i; node != -1; node = prev[node]) {
+                    path.prepend(node);  // 从目标节点回溯到起点
                 }
+
+                // 计算路径长度
+                for (int j = 0; j < path.size() - 1; ++j) {
+                    totalLength += campus.adjacencyMatrix[path[j]][path[j + 1]];
+                }
+
+                // 保存路径和路径长度
+                pathsWithLength[i] = qMakePair(path, totalLength);
+            }
+            else {
+                pathsWithLength[i] = qMakePair(QVector<int>(), -1);  // 不可达的路径，长度为 -1
             }
         }
-        return dist;
+
+        return pathsWithLength;
     }
-
-private:
-    QVector<int> prev;  // 存储每个节点的前驱节点
 };
-
-
 
 #endif // CAMPUSMAP_H

@@ -216,21 +216,43 @@ public:
         scene->addItem(lengthText);
     }
     void onSearchPath() {
-
         QString start = sourceLineEdit->text();  // 获取源景点名称
         if (start.isEmpty()) {
             return;
         }
 
+        // 将起点转换为整数
+        int startIdx = start.toInt();
 
-        // 查询最短路径
-        QVector<int> dist = dijkstra.findShortestPath(*campusMap, start.toInt());
-        QString result = QString::fromLocal8Bit("从景点0到其他景点的最短距离：\n");
+        // 查询最短路径和路径长度
+        QVector<QPair<QVector<int>, int>> pathsWithLength = dijkstra.findShortestPathsWithLength(*campusMap, startIdx);
+
+        QString result = QString::fromLocal8Bit("从景点") + start + QString::fromLocal8Bit("到其他景点的最短路径及其长度：\n");
+
+        // 遍历所有景点
         for (int i = 0; i < campusMap->landmarks.size(); ++i) {
-            result += QString::fromLocal8Bit("景点") + QString::number(i) + ": " + QString::number(dist[i]) + "\n";
+            const QVector<int>& path = pathsWithLength[i].first;
+            int totalLength = pathsWithLength[i].second;
+
+            if (path.isEmpty()) {
+                result += QString::fromLocal8Bit("景点") + QString::number(i) + QString::fromLocal8Bit(": 无法到达\n");
+            }
+            else {
+                result += QString::fromLocal8Bit("景点") + QString::number(i) + QString::fromLocal8Bit(": 路径 -> ");
+                for (int j = 0; j < path.size(); ++j) {
+                    result += QString::number(path[j]);
+                    if (j < path.size() - 1) {
+                        result += " -> ";
+                    }
+                }
+                result += QString::fromLocal8Bit("， 路径长度: ") + QString::number(totalLength) + "\n";
+            }
         }
+
+        // 更新显示的结果
         infoLabel->setText(result);
     }
+
 
     void onSearchPathComplex() {
         QStringList landmarksList = sourceLineEdit->text().split(" ");  // 获取多个景点的输入，按空格分隔
@@ -245,28 +267,50 @@ public:
         }
 
 
-        // 假设用户输入了多个目标景点
+        // 获取用户输入的目标景点列表（多个目标）
         QStringList targetsStr = landmarksList;
         QVector<int> targets;
         for (const QString& target : targetsStr) {
             targets.append(target.toInt());
         }
 
-        int start = targets.front();  // 将输入的源景点转换为整数
-
-        // 使用Dijkstra算法，查询从源点到所有景点的最短路径和前驱节点
-        QVector<int> prev(campusMap->landmarks.size(), -1);
-        QVector<int> dist = dijkstra.findShortestPathWithPrev(*campusMap, start, prev);
-
-        // 输出最短距离结果
-        QString result = QString::fromLocal8Bit("从景点") + QString::number(start) + QString::fromLocal8Bit("到各目标景点的最短路径：\n");
-
-        // 输出途经点和最短路径
-        for (int target : targets) {
-            result += QString::fromLocal8Bit("景点") + QString::number(target) + ": " + QString::number(dist[target]) + "\n";
-            result += getPath(prev, target) + "\n";  // 获取并输出路径
+     
+        // 获取距离矩阵
+        QVector<QVector<int>> dist = campusMap->getDistanceMatrix();
+        printf("距离矩阵：\n");
+        for (const auto& row : dist) {
+            for (int val : row) {
+                printf("%d ", val);
+            }
+            printf("\n");
         }
 
+        // 使用距离矩阵进行 TSP 计算
+        QVector<int> path;
+        int shortestPath = campusMap->calculateTSPUsingMatrix(targets, path);
+
+        // 输出最短路径和路径长度
+        printf("最短路径长度: %d\n", shortestPath);
+        printf("路径顺序: ");
+        for (int idx : path) {
+            printf("%d ", idx);
+        }
+
+   
+        // 输出计算结果
+        QString result = QString::fromLocal8Bit("从景点") + QString::number(targets[0]) + QString::fromLocal8Bit("到各目标景点的最短路径：\n");
+
+        // 输出经过的景点和路径
+        QString pathString = QString::fromLocal8Bit("路径： ");
+        for (int node : path) {
+            pathString += QString::number(node) + " ";
+        }
+
+        // 添加路径长度
+        result += pathString + "\n";
+        result += QString::fromLocal8Bit("最短路径长度: ") + QString::number(shortestPath);
+
+        // 显示最终结果
         infoLabel->setText(result);
     }
 
