@@ -52,30 +52,34 @@ public:
 
 class Dijkstra {
 public:
+    // 查询从start到所有节点的最短路径
     QVector<int> findShortestPath(CampusMap& campus, int start) {
         int n = campus.landmarks.size();
-        QVector<int> dist(n, INT_MAX);
-        QVector<int> prev(n, -1);
-        QVector<bool> visited(n, false);
+        QVector<int> dist(n, INT_MAX);  // 存储最短距离
+        QVector<int> prev(n, -1);  // 存储前驱节点
+        QVector<bool> visited(n, false);  // 标记节点是否已访问
 
         dist[start] = 0;
 
+        // Dijkstra算法核心部分
         for (int i = 0; i < n; ++i) {
             int u = -1;
+            // 找到未访问的最短距离的节点
             for (int j = 0; j < n; ++j) {
                 if (!visited[j] && (u == -1 || dist[j] < dist[u])) {
                     u = j;
                 }
             }
 
-            if (dist[u] == INT_MAX) break; // 所有可达点已访问
+            if (dist[u] == INT_MAX) break;  // 如果所有可达点已访问，退出循环
 
             visited[u] = true;
 
+            // 遍历邻接节点，进行松弛操作
             for (int v = 0; v < n; ++v) {
                 if (campus.adjacencyMatrix[u][v] != -1 && dist[u] + campus.adjacencyMatrix[u][v] < dist[v]) {
                     dist[v] = dist[u] + campus.adjacencyMatrix[u][v];
-                    prev[v] = u;
+                    prev[v] = u;  // 更新前驱节点
                 }
             }
         }
@@ -83,13 +87,33 @@ public:
         return dist;
     }
 
-    QVector<int> getPath(int start, int end, const QVector<int>& prev) {
-        QVector<int> path;
-        for (int v = end; v != -1; v = prev[v]) {
-            path.prepend(v);
+    // 假设这是Dijkstra算法中的一部分
+    QVector<int> findShortestPathWithPrev(CampusMap& campusMap, int start, QVector<int>& prev) {
+        int n = campusMap.landmarks.size();
+        QVector<int> dist(n, INT_MAX);
+        dist[start] = 0;
+        prev.fill(-1, n);  // 初始化前驱数组
+
+        QQueue<int> queue;
+        queue.enqueue(start);
+
+        while (!queue.isEmpty()) {
+            int u = queue.dequeue();
+            for (int v : campusMap.adjacencyMatrix[u]) {
+                if (dist[u] + campusMap.adjacencyMatrix[u][v] < dist[v]) {
+                    dist[v] = dist[u] + campusMap.adjacencyMatrix[u][v];
+                    prev[v] = u;  // 记录前驱节点
+                    queue.enqueue(v);
+                }
+            }
         }
-        return path;
+        return dist;
     }
+
+private:
+    QVector<int> prev;  // 存储每个节点的前驱节点
 };
+
+
 
 #endif // CAMPUSMAP_H
