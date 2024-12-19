@@ -13,7 +13,7 @@ MainWindow::MainWindow(QWidget *parent)
     // 创建校园地图
     campusMap = new CampusMap(10);  // 假设有10个景点
     generateRandomLandmarks();
-    generateRandomPaths();
+   
 
 
 }

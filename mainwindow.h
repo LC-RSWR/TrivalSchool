@@ -178,7 +178,7 @@ public:
             scene->addItem(landmarkItem);
         }
 
-
+        generateRandomPaths();
 
     }
 
@@ -188,7 +188,8 @@ public:
         for (int i = 0; i < 10; ++i) {
             for (int j = i + 1; j < 10; ++j) {
                 if (rand() % 2 == 0) {
-                    int length = rand() % 50 + 10;  // 路径长度在10到60之间
+                    // 计算景点之间的绝对距离（欧几里得距离）
+                    int length = static_cast<int>(campusMap->calculateDistance(i, j));
                     campusMap->addPath(i, j, length);
                     addPath(i, j, length);
                 }
